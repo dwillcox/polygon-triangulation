@@ -191,7 +191,11 @@ namespace TriangleMath
         double area = 0.5 * (vertices[0].x * (vertices[1].y - vertices[2].y) +
                              vertices[1].x * (vertices[2].y - vertices[0].y) +
                              vertices[2].x * (vertices[0].y - vertices[1].y));
+
+        // Depending on the coordinates, the determinant may be negative,
+        // so we specify the absolute value of the determinant as the area.
         area = std::abs(area);
+
         return area;
     }
 
@@ -211,6 +215,8 @@ namespace TriangleMath
         // as the corner of the triangle facing the given side.
         //
         // In algebraic terms, consider triangle A-B-C and point P.
+        //
+        // In the triangle vertices, A-B-C are indexed 0-1-2.
         //
         // Let AB denote the vector from point A to point B and so on.
         //
@@ -237,7 +243,40 @@ namespace TriangleMath
 
         triangle_has_point = triangle_has_point && ab_check_passed;
 
+        // Check a special case in which the triangle ABC is one-dimensionally flat.
+        const bool triangle_is_flat = (ac_cross_ab == 0.0);
+        if (triangle_is_flat) {
+            // In this case ac_cross_ab == 0, so there are two cases to check:
+            if (ap_cross_ab != 0.0) {
+                // * if ap_cross_ab is nonzero the point P is outside the triangle
+                triangle_has_point = false;
+            } else {
+                // * if ap_cross_ab == 0, then P may still be outside the triangle if it does
+                //   not lie on any of the line segments AB, BC, or CA.
+                //   - first compute the vectors PA, PB, and PC
+                const Coordinates vec_pa(point, vertices[0]);
+                const Coordinates vec_pb(point, vertices[1]);
+                const Coordinates vec_pc(point, vertices[2]);
+                const double mag_pa = VectorMath2D::magnitude(vec_pa);
+                const double mag_pb = VectorMath2D::magnitude(vec_pb);
+                const double mag_pc = VectorMath2D::magnitude(vec_pc);
+                //   - then, compute the dot products PA [dot] PB, PB [dot] PC, PC [dot] PA.
+                const double pa_dot_pb = VectorMath2D::dot_product(vec_pa, vec_pb);
+                const double pb_dot_pc = VectorMath2D::dot_product(vec_pb, vec_pc);
+                const double pc_dot_pa = VectorMath2D::dot_product(vec_pc, vec_pa);
+                //   - P is outside the triangle iff none of |PA|, |PB|, or |PC| are zero
+                //     and all three dot products in the previous step have the same sign.
+                const bool nonzero_magnitudes = (mag_pa != 0.0 && mag_pb != 0.0 && mag_pc != 0.0);
+                const bool same_sign_dot_prod = (std::signbit(pa_dot_pb) == std::signbit(pb_dot_pc) &&
+                                                 std::signbit(pa_dot_pb) == std::signbit(pc_dot_pa));
+                if (nonzero_magnitudes && same_sign_dot_prod) {
+                    triangle_has_point = false;
+                }
+            }
+        }
+
         // first cyclic permutation: Containment condition for side BC
+        // (no need to check the special case of a flat triangle again)
         if (triangle_has_point)
         {
             const Coordinates vec_ba(vertices[1], vertices[0]);
@@ -254,6 +293,7 @@ namespace TriangleMath
         }
 
         // second cyclic permutation: Containment condition for side CA
+        // (no need to check the special case of a flat triangle again)
         if (triangle_has_point)
         {
             const Coordinates vec_cb(vertices[2], vertices[1]);
