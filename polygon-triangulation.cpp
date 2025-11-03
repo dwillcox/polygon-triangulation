@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <array>
 #include <vector>
 #include <numbers>
@@ -29,7 +30,11 @@
  */
 
 struct Coordinates {
-    double x, y; 
+    double x, y;
+
+    Coordinates()
+        : x(0), y(0)
+    {}
 
     // Set the coordinate components explicitly
     Coordinates(double u, double v)
@@ -43,6 +48,49 @@ struct Coordinates {
           y(b.y-a.y)
     {}
 };
+
+
+std::vector<Coordinates> read_polygon_from_csv(std::string csv_filename)
+{
+    std::cout << "Got csv filename: '" << csv_filename << "'\n";
+
+    std::vector<Coordinates> xy_pairs;
+
+    // read x,y pairs from the csv file
+    // assuming they are stored one pair per line
+    std::ifstream csv_fstream(csv_filename, std::ios::in);
+
+    if (!csv_fstream.is_open()) {
+        std::cout << "Could not open csv file for reading.\n";
+    } else {
+        std::cout << "Opened csv file for reading.\n";
+        std::string line = "";
+        const std::string delimiter = ",";
+        while (std::getline(csv_fstream, line)) {
+            std::cout << "read line '" << line << "' from file.\n";
+            size_t delimiter_index = line.find(delimiter);
+            // if this line contains a comma, interpret as x,y pair
+            // otherwise do nothing
+            if (delimiter_index != line.npos) {
+                std::string xstr = line.substr(0, delimiter_index);
+                std::string ystr = line.substr(delimiter_index+1, line.npos);
+                double x = std::stod(xstr);
+                double y = std::stod(ystr);
+                Coordinates xy(x,y);
+                xy_pairs.push_back(xy);
+            }
+        }
+        csv_fstream.close();
+
+        std::cout << "Read " << xy_pairs.size() << " x,y pairs:\n";
+        for (const auto& parr : xy_pairs) {
+            std::cout << parr.x << ", " << parr.y << std::endl;
+        }
+    }
+
+    return xy_pairs;
+}
+
 
 namespace VectorMath2D {
     double dot_product(Coordinates v1, Coordinates v2)
@@ -103,17 +151,26 @@ namespace VectorMath2D {
     }
 };
 
+
 struct Triangle {
     std::array<Coordinates, 3> vertices;
 
+    Triangle()
+    {
+        vertices[0] = Coordinates();
+        vertices[1] = Coordinates();
+        vertices[2] = Coordinates();
+    }
+
+    // Store the given vertices, passed as arguments
     Triangle(const Coordinates& a, const Coordinates& b, const Coordinates& c)
     {
-        // Store the given vertices, passed as arguments
         vertices[0] = a;
         vertices[1] = b;
         vertices[2] = c;
     }
 };
+
 
 namespace TriangleMath
 {
@@ -121,6 +178,7 @@ namespace TriangleMath
     {
         // Compute area of this triangle using the determinant
         // and the coordinates of its vertices.
+        const auto& vertices = triangle.vertices;
         double area = 0.5 * (vertices[0].x * (vertices[1].y - vertices[2].y) +
                              vertices[1].x * (vertices[2].y - vertices[0].y) +
                              vertices[2].x * (vertices[0].y - vertices[1].y));
@@ -154,11 +212,12 @@ namespace TriangleMath
         //
         // So:
         bool triangle_has_point = true;
+        const auto& vertices = triangle.vertices;
 
         // Containment condition for side AB
-        const Vec2D vec_ac(vertices[0], vertices[2]);
-        const Vec2D vec_ab(vertices[0], vertices[1]);
-        const Vec2D vec_ap(vertices[0], point);
+        const Coordinates vec_ac(vertices[0], vertices[2]);
+        const Coordinates vec_ab(vertices[0], vertices[1]);
+        const Coordinates vec_ap(vertices[0], point);
 
         const double ap_cross_ab = VectorMath2D::cross_product(vec_ap, vec_ab);
         const double ac_cross_ab = VectorMath2D::cross_product(vec_ac, vec_ab);
@@ -171,9 +230,9 @@ namespace TriangleMath
         // first cyclic permutation: Containment condition for side BC
         if (triangle_has_point)
         {
-            const Vec2D vec_ba(vertices[1], vertices[0]);
-            const Vec2D vec_bc(vertices[1], vertices[2]);
-            const Vec2D vec_bp(vertices[1], point);
+            const Coordinates vec_ba(vertices[1], vertices[0]);
+            const Coordinates vec_bc(vertices[1], vertices[2]);
+            const Coordinates vec_bp(vertices[1], point);
 
             const double bp_cross_bc = VectorMath2D::cross_product(vec_bp, vec_bc);
             const double ba_cross_bc = VectorMath2D::cross_product(vec_ba, vec_bc);
@@ -187,9 +246,9 @@ namespace TriangleMath
         // second cyclic permutation: Containment condition for side CA
         if (triangle_has_point)
         {
-            const Vec2D vec_cb(vertices[2], vertices[1]);
-            const Vec2D vec_ca(vertices[2], vertices[0]);
-            const Vec2D vec_cp(vertices[2], point);
+            const Coordinates vec_cb(vertices[2], vertices[1]);
+            const Coordinates vec_ca(vertices[2], vertices[0]);
+            const Coordinates vec_cp(vertices[2], point);
 
             const double cp_cross_ca = VectorMath2D::cross_product(vec_cp, vec_ca);
             const double cb_cross_ca = VectorMath2D::cross_product(vec_cb, vec_ca);
@@ -209,13 +268,19 @@ struct Polygon {
     std::vector<Coordinates> vertices;
     int orientation;
 
+    Polygon()
+        : vertices({}),
+          orientation(0)
+    {}
+
     Polygon(std::vector<Coordinates>& polygon_points)
         : vertices(polygon_points),
           orientation(0)
     {}
 
-    int get_num_vertices() { return vertices.size(); }
+    int get_num_vertices() const { return vertices.size(); }
 };
+
 
 namespace PolygonMath
 {
@@ -240,16 +305,18 @@ namespace PolygonMath
         // Next all we need do is add up the total angle subtended around the
         // entire polygon. Its sign is the orientation of the polygon.
         int num_vertices = polygon.get_num_vertices();
+        std::cout << "got num_vertices: " << num_vertices << "\n";
         double total_polygon_angle = 0.0;
         for (int i = 0; i < num_vertices; i++)
         {
             // We need the following two polygon vertex indices
             // so shift indices to the start of the polygon if we
             // are near the starting point.
-            int ip1 = i+1 % num_vertices;
-            int ip2 = i+2 % num_vertices;
+            int ip1 = (i+1) % num_vertices;
+            int ip2 = (i+2) % num_vertices;
 
-            Coordinates v1(polygon.vertices[ip], polygon.vertices[ip1]);
+            std::cout << "calculating theta from indices: " << i << " " << ip1 << " " << ip2 << "\n";
+            Coordinates v1(polygon.vertices[i], polygon.vertices[ip1]);
             Coordinates v2(polygon.vertices[ip1], polygon.vertices[ip2]);
             double theta = VectorMath2D::angle_between_vectors(v1, v2);
             total_polygon_angle += theta;
@@ -267,13 +334,13 @@ namespace PolygonMath
 };
 
 
-void triangulate(Polygon& polygon, std::vector<Triangle>& triangulation)
+void triangulate_polygon(Polygon& polygon, std::vector<Triangle>& triangulation)
 {
     // Clear the triangulation buffer
     triangulation.resize(0);
 
     // Create a list of vertex indices for the polygon points
-    const int num_vertices = polygon.get_num_vertices();
+    int num_vertices = polygon.get_num_vertices();
 
     std::vector<int> vertex_ids;
     vertex_ids.resize(num_vertices);
@@ -287,11 +354,136 @@ void triangulate(Polygon& polygon, std::vector<Triangle>& triangulation)
     // vertices. At that point the polygon is fully triangulated.
     while (vertex_ids.size() > 2)
     {
+        // Utilities
+        int num_vertices_remaining = vertex_ids.size();
+        std::cout << "iterating vertex_ids with N vertices: " << num_vertices_remaining << "\n";
+
+        // lambda for converting indices in the working list of vertices
+        // to ring-based indices of vertices in the Polygon
+        auto ring_poly_index = [&, num_vertices_remaining] (int i) -> int {
+            int iRing = (i + num_vertices_remaining) % num_vertices_remaining;
+            return vertex_ids[iRing];
+        };
+
+        // Candidate Triangle for the Ear at this index
+        Triangle candidate_triangle;
+
+        // lambda for checking if this vertex index is an Ear
+        auto vertex_is_ear = [&] (int i) -> bool {
+            // Given index i in the working list of unclipped vertex indices,
+            // check if vertex i is an Ear using the surrounding
+            // unclipped vertices at i-1 (A), i (B), and i+1 (C).
+            //
+            // It must satisfy the following:
+            // Ear Condition 1: AC must lie within the polygon.
+            // Ear Condition 2: Triangle ABC must not contain any vertices.
+            //
+            //// Check Ear Condition 1: AC_within_polygon
+            // Let D be the vertex at i-2.
+            // We check the angle of AC relative to DA (angleAC)
+            // and compare with the angle of AB relative to DA (angleAB)
+            //
+            int iA = ring_poly_index(i-1);
+            int iB = ring_poly_index(i);
+            int iC = ring_poly_index(i+1);
+            int iD = ring_poly_index(i-2);
+            Coordinates vecDA(polygon.vertices[iD], polygon.vertices[iA]);
+            Coordinates vecAC(polygon.vertices[iA], polygon.vertices[iC]);
+            Coordinates vecAB(polygon.vertices[iA], polygon.vertices[iB]);
+            double angleAC = VectorMath2D::angle_between_vectors(vecDA, vecAC);
+            double angleAB = VectorMath2D::angle_between_vectors(vecDA, vecAB);
+
+            // Now, both angleAC and angleAB are given in (-pi,pi)
+            // with respect to the vector from D to A.
+            //
+            // We know the polygon edge proceeds from D to A to B.
+            //
+            // So which side of the path DAB does AC lie on?
+            //
+            // If angleAC is in (-pi, angleAB) then it is within the polygon
+            // only if the polygon is left-handed, or clockwise-oriented.
+            //
+            // If angleAC is in (angleAB, pi) then it is within the polygon
+            // only if the polygon is right-handed, or counter-clockwise-oriented.
+            //
+            // We know for a simple polygon, it is an error if angleAC == angleAB,
+            // as that would require C and A be collocated.
+            bool AC_within_polygon = false;
+
+            std::cout << "A: " << polygon.vertices[iA].x << "," << polygon.vertices[iA].y << "\n";
+            std::cout << "B: " << polygon.vertices[iB].x << "," << polygon.vertices[iB].y << "\n";
+            std::cout << "C: " << polygon.vertices[iC].x << "," << polygon.vertices[iC].y << "\n";
+            std::cout << "D: " << polygon.vertices[iD].x << "," << polygon.vertices[iD].y << "\n";
+            std::cout << "angleAB: " << angleAB << "\n";
+            std::cout << "angleAC: " << angleAC << "\n";
+            std::cout << "ori: " << polygon.orientation << "\n";
+
+            if (iD == iC && num_vertices_remaining == 3) {
+                AC_within_polygon = true;
+            } else {
+                if (polygon.orientation == 1) {
+                    // condition for right-handed polygon
+                    if ((angleAB < angleAC) && (angleAC < std::numbers::pi)) {
+                        AC_within_polygon = true;
+                    }
+                } else if (polygon.orientation == -1) {
+                    // condition for left-handed polygon
+                    if ((-std::numbers::pi < angleAC) && (angleAC < angleAB)) {
+                        AC_within_polygon = true;
+                    }
+                } else {
+                    // ERROR: polygon.orientation must be 1 or -1
+                }
+            }
+
+            //// Check Ear Condition 2: ABC_is_empty
+            bool ABC_is_empty = true;
+            if (AC_within_polygon)
+            {
+                Triangle triangleABC(polygon.vertices[iA],
+                                     polygon.vertices[iB],
+                                     polygon.vertices[iC]);
+                candidate_triangle = triangleABC;
+                for (int ipoly = 0; ipoly < polygon.vertices.size(); ipoly++)
+                {
+                    // skip checking the triangle vertices A,B,C themselves
+                    if (ipoly == iA || ipoly == iB || ipoly == iC) continue;
+
+                    // check that no polygon vertex lies within triangle ABC
+                    if (TriangleMath::triangle_contains_coordinates(triangleABC,
+                                                                    polygon.vertices[ipoly]))
+                    {
+                        ABC_is_empty = false;
+                        break;
+                    }
+                }
+            }
+
+            // check if the vertex indicated by the working index i is an Ear
+            return AC_within_polygon && ABC_is_empty;
+        };
+ 
         // Find an Ear
+        int iEar = -1;
+        for (int i = 0; i < num_vertices_remaining; i++) {
+            if (vertex_is_ear(i)) {
+                std::cout << "Vertex " << i << " is an ear!\n";
+                // Add to our list of Triangles
+                triangulation.push_back(candidate_triangle);
 
-        // Clip the Ear, adding to our list of Triangles
+                iEar = i;
+                break;
+            } else {
+                std::cout << "Vertex " << i << " is NOT an ear!\n";
+            }
+        }
 
-        // Remove the Ear vertex from our list of vertices
+        // ERROR if iEar == -1 and Ear not found
+
+        // Last before we loop:
+        // Remove the Ear vertex from our working list of vertices
+        std::cout << "found iEar = " << iEar << "\n";
+        vertex_ids.erase(vertex_ids.begin() + iEar);
     }
 
     // We are finished with triangulation. The list of triangles is now given
@@ -313,16 +505,47 @@ double compute_triangulated_area(std::vector<Triangle>& triangulation)
 }
 
 
-int main()
+int main(int argc, char** argv)
 {
+    if (argc != 2) {
+        std::cout << "Please run this program as './polygon-triangulation.exe [CSV file]'\n";
+        return -1;
+    }
+
+    std::string csv_filename = argv[1];
+    std::cout << "Reading Polygon from CSV file: " << csv_filename << std::endl;
+
     // Read CSV file into a Polygon
-    //
+    std::vector<Coordinates> polygon_coordinates = read_polygon_from_csv(csv_filename);
+    std::cout << "hi1\n";
+    Polygon polygon(polygon_coordinates);
+    std::cout << "hi2\n";
+
     // Compute the Polygon orientation
-    //
+    polygon.orientation = PolygonMath::compute_polygon_orientation(polygon);
+    std::cout << "hi3\n";
+
     // Compute the Polygon triangulation
-    //
+    std::vector<Triangle> triangulation;
+    std::cout << "hi4\n";
+    triangulate_polygon(polygon, triangulation);
+    std::cout << "hi5\n";
+
     // Compute the triangulation total area
-    //
+    double total_area = compute_triangulated_area(triangulation);
+    std::cout << "hi6\n";
+
     // Output total area, triangulation
+    std::cout << "Total Area: " << total_area << std::endl;
+    std::cout << "Triangulation: list of triangle vertices as (x,y), (x,y), (x,y)\n";
+    for (const auto& triangle : triangulation) {
+        std::cout << "(" << triangle.vertices[0].x << "," << triangle.vertices[0].y << ")";
+        std::cout << ", ";
+        std::cout << "(" << triangle.vertices[1].x << "," << triangle.vertices[1].y << ")";
+        std::cout << ", ";
+        std::cout << "(" << triangle.vertices[2].x << "," << triangle.vertices[2].y << ")";
+        std::cout << std::endl;
+    }
+
     return 0;
 }
