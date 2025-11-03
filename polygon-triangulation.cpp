@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <array>
 #include <vector>
@@ -88,6 +89,14 @@ std::vector<Coordinates> read_polygon_from_csv(std::string csv_filename)
         }
     }
 
+    // If the first and last points are identical, then delete
+    // the last point, as we store only the unique points that
+    // define the polygon.
+    if (xy_pairs.front().x == xy_pairs.back().x &&
+        xy_pairs.front().y == xy_pairs.back().y) {
+        xy_pairs.pop_back();
+    }
+
     return xy_pairs;
 }
 
@@ -134,7 +143,7 @@ namespace VectorMath2D {
         // compute the dot product v1 [dot] v2.
         double v1_dot_v2 = dot_product(v1, v2);
 
-        // project the angle phi into (-pi, pi) using the dot product sign.
+        // project the angle phi into [-pi, pi) using the dot product sign.
         double theta = phi;
 
         if (v1_dot_v2 < 0.0) {
@@ -143,7 +152,7 @@ namespace VectorMath2D {
             } else if (phi < 0.0) {
                 theta = -phi - std::numbers::pi;
             } else {
-                theta = 0.0;
+                theta = -std::numbers::pi;
             }
         }
 
@@ -182,6 +191,7 @@ namespace TriangleMath
         double area = 0.5 * (vertices[0].x * (vertices[1].y - vertices[2].y) +
                              vertices[1].x * (vertices[2].y - vertices[0].y) +
                              vertices[2].x * (vertices[0].y - vertices[1].y));
+        area = std::abs(area);
         return area;
     }
 
@@ -423,12 +433,18 @@ void triangulate_polygon(Polygon& polygon, std::vector<Triangle>& triangulation)
             } else {
                 if (polygon.orientation == 1) {
                     // condition for right-handed polygon
-                    if ((angleAB < angleAC) && (angleAC < std::numbers::pi)) {
+                    //
+                    // note that if angleAB == angleAC then BC is parallel to AB
+                    // and B may be clipped, though it contributes zero total area.
+                    if ((angleAB <= angleAC) && (angleAC < std::numbers::pi)) {
                         AC_within_polygon = true;
                     }
                 } else if (polygon.orientation == -1) {
                     // condition for left-handed polygon
-                    if ((-std::numbers::pi < angleAC) && (angleAC < angleAB)) {
+                    //
+                    // note that if angleAB == angleAC then BC is parallel to AB
+                    // and B may be clipped, though it contributes zero total area.
+                    if ((-std::numbers::pi < angleAC) && (angleAC <= angleAB)) {
                         AC_within_polygon = true;
                     }
                 } else {
@@ -453,6 +469,8 @@ void triangulate_polygon(Polygon& polygon, std::vector<Triangle>& triangulation)
                     if (TriangleMath::triangle_contains_coordinates(triangleABC,
                                                                     polygon.vertices[ipoly]))
                     {
+                        std::cout << "ABC contains point at: " << polygon.vertices[ipoly].x
+                                  << "," << polygon.vertices[ipoly].y << "\n";
                         ABC_is_empty = false;
                         break;
                     }
@@ -460,6 +478,8 @@ void triangulate_polygon(Polygon& polygon, std::vector<Triangle>& triangulation)
             }
 
             // check if the vertex indicated by the working index i is an Ear
+            std::cout << "AC_within_polygon = " << AC_within_polygon << "\n";
+            std::cout << "ABC_is_empty = " << ABC_is_empty << "\n";
             return AC_within_polygon && ABC_is_empty;
         };
  
@@ -479,11 +499,19 @@ void triangulate_polygon(Polygon& polygon, std::vector<Triangle>& triangulation)
         }
 
         // ERROR if iEar == -1 and Ear not found
+        if (iEar == -1) {
+            std::cout << "could not find an ear with num_vertices_remaining = " << num_vertices_remaining << "\n";
+            break;
+        }
 
         // Last before we loop:
         // Remove the Ear vertex from our working list of vertices
         std::cout << "found iEar = " << iEar << "\n";
         vertex_ids.erase(vertex_ids.begin() + iEar);
+    }
+
+    if (vertex_ids.size() != 2) {
+        std::cout << "ERROR: incomplete triangulation. " << vertex_ids.size() << " vertices remaining.\n";
     }
 
     // We are finished with triangulation. The list of triangles is now given
@@ -535,8 +563,7 @@ int main(int argc, char** argv)
     double total_area = compute_triangulated_area(triangulation);
     std::cout << "hi6\n";
 
-    // Output total area, triangulation
-    std::cout << "Total Area: " << total_area << std::endl;
+    // Output triangulation
     std::cout << "Triangulation: list of triangle vertices as (x,y), (x,y), (x,y)\n";
     for (const auto& triangle : triangulation) {
         std::cout << "(" << triangle.vertices[0].x << "," << triangle.vertices[0].y << ")";
@@ -546,6 +573,9 @@ int main(int argc, char** argv)
         std::cout << "(" << triangle.vertices[2].x << "," << triangle.vertices[2].y << ")";
         std::cout << std::endl;
     }
+
+    // Output total area
+    std::cout << "Total Area: " << std::setprecision(20) << total_area << std::endl;
 
     return 0;
 }
