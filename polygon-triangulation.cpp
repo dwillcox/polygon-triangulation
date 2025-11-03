@@ -101,7 +101,7 @@ std::vector<Coordinates> read_polygon_from_csv(std::string csv_filename)
 }
 
 
-namespace VectorMath2D {
+namespace VectorMath {
     double dot_product(Coordinates v1, Coordinates v2)
     {
         // Compute the dot product of v1 [dot] v2.
@@ -235,8 +235,8 @@ namespace TriangleMath
         const Coordinates vec_ab(vertices[0], vertices[1]);
         const Coordinates vec_ap(vertices[0], point);
 
-        const double ap_cross_ab = VectorMath2D::cross_product(vec_ap, vec_ab);
-        const double ac_cross_ab = VectorMath2D::cross_product(vec_ac, vec_ab);
+        const double ap_cross_ab = VectorMath::cross_product(vec_ap, vec_ab);
+        const double ac_cross_ab = VectorMath::cross_product(vec_ac, vec_ab);
 
         const bool ab_check_passed = (ap_cross_ab == 0.0) ||
                                      (std::signbit(ac_cross_ab) == std::signbit(ap_cross_ab));
@@ -257,13 +257,13 @@ namespace TriangleMath
                 const Coordinates vec_pa(point, vertices[0]);
                 const Coordinates vec_pb(point, vertices[1]);
                 const Coordinates vec_pc(point, vertices[2]);
-                const double mag_pa = VectorMath2D::magnitude(vec_pa);
-                const double mag_pb = VectorMath2D::magnitude(vec_pb);
-                const double mag_pc = VectorMath2D::magnitude(vec_pc);
+                const double mag_pa = VectorMath::magnitude(vec_pa);
+                const double mag_pb = VectorMath::magnitude(vec_pb);
+                const double mag_pc = VectorMath::magnitude(vec_pc);
                 //   - then, compute the dot products PA [dot] PB, PB [dot] PC, PC [dot] PA.
-                const double pa_dot_pb = VectorMath2D::dot_product(vec_pa, vec_pb);
-                const double pb_dot_pc = VectorMath2D::dot_product(vec_pb, vec_pc);
-                const double pc_dot_pa = VectorMath2D::dot_product(vec_pc, vec_pa);
+                const double pa_dot_pb = VectorMath::dot_product(vec_pa, vec_pb);
+                const double pb_dot_pc = VectorMath::dot_product(vec_pb, vec_pc);
+                const double pc_dot_pa = VectorMath::dot_product(vec_pc, vec_pa);
                 //   - P is outside the triangle iff none of |PA|, |PB|, or |PC| are zero
                 //     and all three dot products in the previous step have the same sign.
                 const bool nonzero_magnitudes = (mag_pa != 0.0 && mag_pb != 0.0 && mag_pc != 0.0);
@@ -283,8 +283,8 @@ namespace TriangleMath
             const Coordinates vec_bc(vertices[1], vertices[2]);
             const Coordinates vec_bp(vertices[1], point);
 
-            const double bp_cross_bc = VectorMath2D::cross_product(vec_bp, vec_bc);
-            const double ba_cross_bc = VectorMath2D::cross_product(vec_ba, vec_bc);
+            const double bp_cross_bc = VectorMath::cross_product(vec_bp, vec_bc);
+            const double ba_cross_bc = VectorMath::cross_product(vec_ba, vec_bc);
 
             const bool bc_check_passed = (bp_cross_bc == 0.0) ||
                                          (std::signbit(ba_cross_bc) == std::signbit(bp_cross_bc));
@@ -300,8 +300,8 @@ namespace TriangleMath
             const Coordinates vec_ca(vertices[2], vertices[0]);
             const Coordinates vec_cp(vertices[2], point);
 
-            const double cp_cross_ca = VectorMath2D::cross_product(vec_cp, vec_ca);
-            const double cb_cross_ca = VectorMath2D::cross_product(vec_cb, vec_ca);
+            const double cp_cross_ca = VectorMath::cross_product(vec_cp, vec_ca);
+            const double cb_cross_ca = VectorMath::cross_product(vec_cb, vec_ca);
 
             const bool ca_check_passed = (cp_cross_ca == 0.0) ||
                                          (std::signbit(cb_cross_ca) == std::signbit(cp_cross_ca));
@@ -350,7 +350,7 @@ namespace PolygonMath
         // We wish to know the angle subtended by vector AB if it is rotated
         // to orient along vector BC, where we require the angle in (-pi, pi).
         //
-        // This is computed by the VectorMath2D::angle_between_vectors function.
+        // This is computed by the VectorMath::angle_between_vectors function.
         //
         // Next all we need do is add up the total angle subtended around the
         // entire polygon. Its sign is the orientation of the polygon.
@@ -368,7 +368,7 @@ namespace PolygonMath
             std::cout << "calculating theta from indices: " << i << " " << ip1 << " " << ip2 << "\n";
             Coordinates v1(polygon.vertices[i], polygon.vertices[ip1]);
             Coordinates v2(polygon.vertices[ip1], polygon.vertices[ip2]);
-            double theta = VectorMath2D::angle_between_vectors(v1, v2);
+            double theta = VectorMath::angle_between_vectors(v1, v2);
             total_polygon_angle += theta;
         } 
 
@@ -440,8 +440,8 @@ void triangulate_polygon(Polygon& polygon, std::vector<Triangle>& triangulation)
             Coordinates vecDA(polygon.vertices[iD], polygon.vertices[iA]);
             Coordinates vecAC(polygon.vertices[iA], polygon.vertices[iC]);
             Coordinates vecAB(polygon.vertices[iA], polygon.vertices[iB]);
-            double angleAC = VectorMath2D::angle_between_vectors(vecDA, vecAC);
-            double angleAB = VectorMath2D::angle_between_vectors(vecDA, vecAB);
+            double angleAC = VectorMath::angle_between_vectors(vecDA, vecAC);
+            double angleAB = VectorMath::angle_between_vectors(vecDA, vecAB);
 
             // Now, both angleAC and angleAB are given in (-pi,pi)
             // with respect to the vector from D to A.
