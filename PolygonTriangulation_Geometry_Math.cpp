@@ -222,7 +222,11 @@ namespace PolygonMath
         // Next all we need do is add up the total angle subtended around the
         // entire polygon. Its sign is the orientation of the polygon.
         int num_vertices = polygon.get_num_vertices();
+
+#if defined(DEBUGPRINT)
         std::cout << "got num_vertices: " << num_vertices << "\n";
+#endif
+
         double total_polygon_angle = 0.0;
         for (int i = 0; i < num_vertices; i++)
         {
@@ -232,7 +236,10 @@ namespace PolygonMath
             int ip1 = (i+1) % num_vertices;
             int ip2 = (i+2) % num_vertices;
 
+#if defined(DEBUGPRINT)
             std::cout << "calculating theta from indices: " << i << " " << ip1 << " " << ip2 << "\n";
+#endif
+
             Coordinates v1(polygon.vertices[i], polygon.vertices[ip1]);
             Coordinates v2(polygon.vertices[ip1], polygon.vertices[ip2]);
             double theta = VectorMath::angle_between_vectors(v1, v2);
