@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <vector>
+#include <cassert>
 
 void triangulate_polygon(Polygon& polygon, std::vector<Triangle>& triangulation)
 {
@@ -13,6 +14,11 @@ void triangulate_polygon(Polygon& polygon, std::vector<Triangle>& triangulation)
 
     // Create a list of vertex indices for the polygon points
     int num_vertices = polygon.get_num_vertices();
+
+    if (num_vertices <= 2) {
+        std::cout << "In order to triangulate the polygon, the polygon requres more than two unique vertices.\n";
+        assert(num_vertices > 2);
+    }
 
     std::vector<int> vertex_ids;
     vertex_ids.resize(num_vertices);
@@ -28,7 +34,10 @@ void triangulate_polygon(Polygon& polygon, std::vector<Triangle>& triangulation)
     {
         // Utilities
         int num_vertices_remaining = vertex_ids.size();
+
+#if defined(DEBUGPRINT)
         std::cout << "iterating vertex_ids with N vertices: " << num_vertices_remaining << "\n";
+#endif
 
         // lambda for converting indices in the working list of vertices
         // to ring-based indices of vertices in the Polygon
@@ -82,6 +91,7 @@ void triangulate_polygon(Polygon& polygon, std::vector<Triangle>& triangulation)
             // as that would require C and A be collocated.
             bool AC_within_polygon = false;
 
+#if defined(DEBUGPRINT)
             std::cout << "A: " << polygon.vertices[iA].x << "," << polygon.vertices[iA].y << "\n";
             std::cout << "B: " << polygon.vertices[iB].x << "," << polygon.vertices[iB].y << "\n";
             std::cout << "C: " << polygon.vertices[iC].x << "," << polygon.vertices[iC].y << "\n";
@@ -89,6 +99,7 @@ void triangulate_polygon(Polygon& polygon, std::vector<Triangle>& triangulation)
             std::cout << "angleAB: " << angleAB << "\n";
             std::cout << "angleAC: " << angleAC << "\n";
             std::cout << "ori: " << polygon.orientation << "\n";
+#endif
 
             if (iD == iC && num_vertices_remaining == 3) {
                 AC_within_polygon = true;
@@ -131,8 +142,10 @@ void triangulate_polygon(Polygon& polygon, std::vector<Triangle>& triangulation)
                     if (TriangleMath::triangle_contains_coordinates(triangleABC,
                                                                     polygon.vertices[ipoly]))
                     {
+#if defined(DEBUGPRINT)
                         std::cout << "ABC contains point at: " << polygon.vertices[ipoly].x
                                   << "," << polygon.vertices[ipoly].y << "\n";
+#endif
                         ABC_is_empty = false;
                         break;
                     }
@@ -140,8 +153,12 @@ void triangulate_polygon(Polygon& polygon, std::vector<Triangle>& triangulation)
             }
 
             // check if the vertex indicated by the working index i is an Ear
+
+#if defined(DEBUGPRINT)
             std::cout << "AC_within_polygon = " << AC_within_polygon << "\n";
             std::cout << "ABC_is_empty = " << ABC_is_empty << "\n";
+#endif
+
             return AC_within_polygon && ABC_is_empty;
         };
  
@@ -149,31 +166,42 @@ void triangulate_polygon(Polygon& polygon, std::vector<Triangle>& triangulation)
         int iEar = -1;
         for (int i = 0; i < num_vertices_remaining; i++) {
             if (vertex_is_ear(i)) {
+#if defined(DEBUGPRINT)
                 std::cout << "Vertex " << i << " is an ear!\n";
+#endif
+
                 // Add to our list of Triangles
                 triangulation.push_back(candidate_triangle);
 
                 iEar = i;
                 break;
             } else {
+#if defined(DEBUGPRINT)
                 std::cout << "Vertex " << i << " is NOT an ear!\n";
+#endif
             }
         }
 
         // ERROR if iEar == -1 and Ear not found
         if (iEar == -1) {
+#if defined(DEBUGPRINT)
             std::cout << "could not find an ear with num_vertices_remaining = " << num_vertices_remaining << "\n";
+#endif
+            assert(iEar != -1);
             break;
         }
 
         // Last before we loop:
         // Remove the Ear vertex from our working list of vertices
+#if defined(DEBUGPRINT)
         std::cout << "found iEar = " << iEar << "\n";
+#endif
         vertex_ids.erase(vertex_ids.begin() + iEar);
     }
 
     if (vertex_ids.size() != 2) {
         std::cout << "ERROR: incomplete triangulation. " << vertex_ids.size() << " vertices remaining.\n";
+        assert(vertex_ids.size() == 2);
     }
 
     // We are finished with triangulation. The list of triangles is now given

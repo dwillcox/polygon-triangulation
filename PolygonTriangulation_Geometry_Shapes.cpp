@@ -6,7 +6,9 @@
 
 bool Polygon::read_from_csv(std::string csv_filename)
 {
+#if defined(DEBUGPRINT)
     std::cout << "Got csv filename: '" << csv_filename << "'\n";
+#endif
 
     // clear any existing vertices and reset existing orientation
     vertices.resize(0);
@@ -23,7 +25,11 @@ bool Polygon::read_from_csv(std::string csv_filename)
         std::string line = "";
         const std::string delimiter = ",";
         while (std::getline(csv_fstream, line)) {
+
+#if defined(DEBUGPRINT)
             std::cout << "read line '" << line << "' from file.\n";
+#endif
+
             size_t delimiter_index = line.find(delimiter);
             // if this line contains a comma, interpret as x,y pair
             // otherwise do nothing
@@ -38,10 +44,13 @@ bool Polygon::read_from_csv(std::string csv_filename)
         }
         csv_fstream.close();
 
+#if defined(DEBUGPRINT)
         std::cout << "Read " << vertices.size() << " x,y pairs:\n";
+
         for (const auto& parr : vertices) {
             std::cout << parr.x << ", " << parr.y << std::endl;
         }
+#endif
     }
 
     // If the first and last points are identical, then delete

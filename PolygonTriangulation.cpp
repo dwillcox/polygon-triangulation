@@ -54,23 +54,17 @@ int main(int argc, char** argv)
 
     // Read CSV file into a Polygon
     Polygon polygon;
-    std::cout << "hi1\n";
     polygon.read_from_csv(csv_filename);
-    std::cout << "hi2\n";
 
     // Compute the Polygon orientation
     polygon.orientation = PolygonMath::compute_polygon_orientation(polygon);
-    std::cout << "hi3\n";
 
     // Compute the Polygon triangulation
     std::vector<Triangle> triangulation;
-    std::cout << "hi4\n";
     triangulate_polygon(polygon, triangulation);
-    std::cout << "hi5\n";
 
     // Compute the triangulation total area
     double total_area = TriangulationMath::compute_triangulated_area(triangulation);
-    std::cout << "hi6\n";
 
     // Output triangulation
     std::cout << "Triangulation: list of triangle vertices as (x,y), (x,y), (x,y)\n";
