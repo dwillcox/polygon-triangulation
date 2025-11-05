@@ -15,7 +15,7 @@ on each line of the CSV file.
 To build this program, do:
 
 ```
-make all
+make
 ```
 
 Build tested on Linux with the following software versions:
