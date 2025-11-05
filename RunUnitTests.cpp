@@ -6,6 +6,8 @@
 
 int main()
 {
+    using namespace PolygonTriangulation;
+
     auto test_and_report = [] (std::string label, std::function<bool()> test) {
         std::cout << "Test: " << label << " ... ";
 

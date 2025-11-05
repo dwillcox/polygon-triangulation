@@ -5,7 +5,12 @@
 
 #include <vector>
 
-void triangulate_polygon(Polygon& polygon, std::vector<Triangle>& triangulation);
+namespace PolygonTriangulation
+{
+
+    void triangulate_polygon(Polygon& polygon, std::vector<Triangle>& triangulation);
+
+};
 
 
 #endif // POLY_TRI_ALGORITHM_H_

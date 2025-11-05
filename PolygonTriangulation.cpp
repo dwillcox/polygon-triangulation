@@ -44,6 +44,8 @@
 
 int main(int argc, char** argv)
 {
+    using namespace PolygonTriangulation;
+
     if (argc != 2) {
         std::cout << "Please run this program as './PolygonTriangulation.exe [CSV file]'\n";
         return -1;
