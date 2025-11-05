@@ -20,11 +20,19 @@ To build this program, do:
 $ make
 ```
 
-Build tested on Linux with the following software versions:
+Build tested on Linux with the following software versions.
+
+GCC 15:
 
 - GCC 15.2.1
 - GNU Make 4.4.1
 - Linux kernel 6.17.2
+
+GCC 10.5:
+
+- GCC 10.5.0
+- GNU Make 4.3
+- Linux kernel 6.16.3
 
 ## Running this program
 
