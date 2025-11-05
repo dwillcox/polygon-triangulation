@@ -36,7 +36,11 @@ GCC 10.5:
 
 ## Running this program
 
-Please run this program as './PolygonTriangulation.exe [CSV file]'
+Once built, simply run this program as:
+
+```
+$ ./PolygonTriangulation.exe [CSV file]
+```
 
 The program will write out the resulting triangulation to the console.
 
