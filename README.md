@@ -12,6 +12,8 @@ on each line of the CSV file.
 
 ## Building this program
 
+PolygonTriangulation requires only C++20 and the C++ standard library.
+
 To build this program, do:
 
 ```
