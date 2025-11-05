@@ -11,7 +11,7 @@ all:
 
 tests:
 	g++ -std=c++20 -g -o RunUnitTests.exe RunUnitTests.cpp $(SOURCES) -I.
-	./RunUnitTests.exe
+	g++ -std=c++20 -g -o RunRegressionTests.exe RunRegressionTests.cpp $(SOURCES) -I.
 
 clean:
 	rm *.exe
