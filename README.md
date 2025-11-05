@@ -37,7 +37,7 @@ In addition, the program will print the total triangulated area of the polygon.
 ## Running Unit and Regression Tests
 
 GitHub Actions is set up to check the build as well as run the included unit
-and regressions tests.
+and regressions tests for any pull request.
 
 Here are instructions to build and run the tests manually.
 
