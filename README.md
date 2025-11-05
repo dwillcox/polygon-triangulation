@@ -34,11 +34,28 @@ The program will write out the resulting triangulation to the console.
 
 In addition, the program will print the total triangulated area of the polygon.
 
-## Running unit tests for this program
+## Running Unit and Regression Tests
 
-Build and execute the unit tests by doing:
+GitHub Actions is set up to check the build as well as run the included unit
+and regressions tests.
+
+Here are instructions to build and run the tests manually.
+
+Build the unit and regression tests by doing:
 
 ```
 $ make tests
+```
+
+Then run unit tests:
+
+```
+$ ./RunUnitTests.exe
+```
+
+And run regression tests:
+
+```
+$ ./RunRegressionTests.exe
 ```
 
