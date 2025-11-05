@@ -21,7 +21,7 @@ namespace Testing
 
     namespace Shapes
     {
-        int test_coordinate_initialization()
+        bool test_coordinate_initialization()
         {
             // Test Coordinate initialization
 
@@ -46,11 +46,11 @@ namespace Testing
                 assert(c.x == 3.0 && c.y == -3.0 && "SUCCESS: relative coordinate initialization");
             }
                 
-            return 0;
+            return true;
         }
 
 
-        int test_triangle_initialization()
+        bool test_triangle_initialization()
         {
             // test Triangle initialization
 
@@ -77,13 +77,13 @@ namespace Testing
                        "SUCCESS: triangle vertex init");
             }
 
-            return 0;
+            return true;
         }
     };
 
     namespace Vectors
     {
-        int test_dot_product()
+        bool test_dot_product()
         {
             Coordinates u(1.0, 0.0);
             Coordinates v(1.0, 1.0);
@@ -95,11 +95,11 @@ namespace Testing
             double u_dot_w = VectorMath::dot_product(u, w);
             assert(u_dot_w == -1.0 && "SUCCESS: obtuse dot product");
 
-            return 0;
+            return true;
         }
 
 
-        int test_cross_product()
+        bool test_cross_product()
         {
             Coordinates u(1.0, 0.0);
             Coordinates v(1.0, 1.0);
@@ -118,11 +118,11 @@ namespace Testing
             double v_cross_w = VectorMath::cross_product(v, w);
             assert(v_cross_w == 0.0 && "SUCCESS: zero cross product");
 
-            return 0;
+            return true;
         }
 
 
-        int test_magnitude()
+        bool test_magnitude()
         {
             Coordinates u(1.0, 0.0);
             Coordinates v(1.0, 1.0);
@@ -141,11 +141,11 @@ namespace Testing
             double mag_q = VectorMath::magnitude(q);
             assert(mag_q == 1.0);
 
-            return 0;
+            return true;
         }
 
 
-        int test_angle_between_vectors()
+        bool test_angle_between_vectors()
         {
             Coordinates u(1.0, 0.0);
             Coordinates v(1.0, 1.0);
@@ -161,14 +161,14 @@ namespace Testing
             double angle_uq = VectorMath::angle_between_vectors(u, q);
             assert(relative_error(angle_uq, std::numbers::pi/2.0) <= 1.0e-14);
 
-            return 0;
+            return true;
         }
     };
 
 
     namespace Triangles
     {
-        int test_compute_triangle_area()
+        bool test_compute_triangle_area()
         {
             {
                 // test an easy triangle
@@ -192,10 +192,10 @@ namespace Testing
                 assert(relative_error(area, 0.0) <= 1.0e-14);
             }
 
-            return 0;
+            return true;
         }
 
-        int test_triangle_contains_coordinates()
+        bool test_triangle_contains_coordinates()
         {
              {
                 // test an easy triangle
@@ -248,13 +248,13 @@ namespace Testing
                 }
             }
 
-            return 0;
+            return true;
         }
     };
 
     namespace Polygons
     {
-        int test_compute_polygon_orientation()
+        bool test_compute_polygon_orientation()
         {
             {
                 // test a counter-clockwise polygon
@@ -288,7 +288,7 @@ namespace Testing
                 assert(orientation == -1);
             }
 
-            return 0;
+            return true;
         }
     };
 };

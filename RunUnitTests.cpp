@@ -1,26 +1,51 @@
 #include <PolygonTriangulation_Testing.h>
 
 #include <iostream>
+#include <functional>
+#include <cassert>
 
 int main()
 {
-    Testing::Shapes::test_coordinate_initialization();
+    auto test_and_report = [] (std::string label, std::function<bool()> test) {
+        std::cout << "Test: " << label << " ... ";
 
-    Testing::Shapes::test_triangle_initialization();
+        bool success = test();
 
-    Testing::Vectors::test_dot_product();
+        if (success == true) {
+            std::cout << "SUCCESS!\n";
+        } else {
+            std::cout << "FAILED!\n";
+        }
 
-    Testing::Vectors::test_cross_product();
+        assert(success == true);
+    };
 
-    Testing::Vectors::test_magnitude();
+    test_and_report("Initialize Coordinates",
+                    Testing::Shapes::test_coordinate_initialization);
 
-    Testing::Vectors::test_angle_between_vectors();
+    test_and_report("Initialize Triangle",
+                    Testing::Shapes::test_triangle_initialization);
 
-    Testing::Triangles::test_triangle_contains_coordinates();
+    test_and_report("Calculating Vector Dot Product",
+                    Testing::Vectors::test_dot_product);
 
-    Testing::Triangles::test_compute_triangle_area();
+    test_and_report("Calculating Vector Cross Product",
+                    Testing::Vectors::test_cross_product);
 
-    Testing::Polygons::test_compute_polygon_orientation();
+    test_and_report("Calculating Vector Magnitude",
+                    Testing::Vectors::test_magnitude);
+
+    test_and_report("Calculating Angle Between Vectors",
+                    Testing::Vectors::test_angle_between_vectors);
+
+    test_and_report("Calculating Whether Triangle Contains Coordinates",
+                    Testing::Triangles::test_triangle_contains_coordinates);
+
+    test_and_report("Calculating Triangle Area",
+                    Testing::Triangles::test_compute_triangle_area);
+
+    test_and_report("Calculating Polygon Orientation",
+                    Testing::Polygons::test_compute_polygon_orientation);
 
     std::cout << "All Tests Pass!\n";
 

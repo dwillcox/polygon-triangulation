@@ -7,28 +7,28 @@ namespace Testing
 
     namespace Shapes
     {
-        int test_coordinate_initialization();
+        bool test_coordinate_initialization();
 
-        int test_triangle_initialization();
+        bool test_triangle_initialization();
     };
 
     namespace Vectors
     {
-        int test_dot_product();
-        int test_cross_product();
-        int test_magnitude();
-        int test_angle_between_vectors();
+        bool test_dot_product();
+        bool test_cross_product();
+        bool test_magnitude();
+        bool test_angle_between_vectors();
     };
 
     namespace Triangles
     {
-        int test_triangle_contains_coordinates();
-        int test_compute_triangle_area();
+        bool test_triangle_contains_coordinates();
+        bool test_compute_triangle_area();
     };
 
     namespace Polygons
     {
-        int test_compute_polygon_orientation();
+        bool test_compute_polygon_orientation();
     };
 };
 
