@@ -3,9 +3,11 @@ name: PolygonTriangulation-Tests
 on:
   pull_request:
     branches: main
+  workflow_dispatch:
+    branches: main
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
     steps:
 
